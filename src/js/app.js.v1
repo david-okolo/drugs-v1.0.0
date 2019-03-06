@@ -1,0 +1,123 @@
+App = {
+  web3Provider: null,
+  contracts: {},
+  account: '0x0',
+
+  init: function(){
+    return App.initWeb3();
+  },
+
+  initWeb3: function(){
+    if (typeof web3 !== 'undefined'){
+      App.web3Provider = web3.currentProvider;
+      web3 = new Web3(web3.currentProvider);
+    }else {
+      App.web3Provider = web3.currentProvider;
+      web3 = new Web3(App.web3Provider);
+    }
+    return App.initContract();
+  },
+
+  initContract: function() {
+    $.getJSON("DrugValidation.json", function(drugValidation){
+      App.contracts.DrugValidation = TruffleContract(drugValidation);
+      App.contracts.DrugValidation.setProvider(App.web3Provider);
+      return App.render();
+    });
+  },
+
+  render: function(){
+    var drugValidationInstance;
+    var loader = $("#loader");
+    var content = $("#content");
+
+    loader.show();
+    content.hide();
+
+    web3.eth.getCoinbase(function(err, account){
+      if (err === null) {
+        App.account = account;
+        $("#accountAddress").html("Your Account: " +account);
+      }
+    });
+
+    App.contracts.DrugValidation.deployed().then(function(instance){
+      drugValidationInstance = instance;
+      return drugValidationInstance.drugCount();
+    }).then(function(drugCount){
+      var drugCollection = $("#drugCollection");
+      drugCollection.empty();
+
+      for (var i = 1; i <= drugCount; i++) {
+        drugValidationInstance.drugs(i).then(function(drug){
+          var id = drug[0];
+          var name = drug[1];
+          var dosage = drug[2];
+          var registrationNo = drug[3];
+          var collected = drug[5];
+
+          var drugTemplate = "<tr><th>" +id+ "</th><td>" +name+ "</td><td>" +dosage+ "</td><td>" +registrationNo+ "</td><td>" +collected+ "</td>";
+          $("#drugCollection").append(drugTemplate);
+        });
+      }
+
+      loader.hide();
+      content.show();
+    }).catch(function(error){
+      console.warn(error);
+    });
+  },
+
+  addDrug: function(){
+    // Add check for already existing registration number (mui importante!)
+    $("#add_alert").empty();
+    var appInstance;
+    var drugName = $("#drug_name").val();
+    var drugDosage = $("#drug_dosage").val();
+    var drugRegistration = $("#drug_registration").val();
+
+    if (drugRegistration.length >= 6) {
+      App.contracts.DrugValidation.deployed().then((instance) => {
+        instance.addDrug(drugName, drugDosage, drugRegistration);
+      });
+      var addAlert = '<div class="alert alert-success" role="alert">Successfully Added</div>'
+    } else {
+      var addAlert = '<div class="alert alert-danger" role="alert">Please fill in a valid registration number.</div>'
+    }
+
+    $("#add_alert").append(addAlert);
+  },
+
+  checkDrug: function(){
+    $("#checkResult").empty();
+    var checkRegistration = $("#check_drug_registration").val();
+    App.contracts.DrugValidation.deployed().then(function(instance){
+      return instance.checkDrug(checkRegistration);
+    }).then(function(foundDrug){
+      var id = foundDrug[0];
+      var name = foundDrug[1];
+      var dosage = foundDrug[2];
+      var registrationNo = foundDrug[3];
+      var collected = foundDrug[5];
+
+      if (registrationNo == 0) {
+        var drugTemplate = '<div class="alert alert-danger" role="alert">There is no drug registered to that number.</div>';
+      } else {
+        var drugTemplate = "<p><strong>Name:</strong> "+name+"</p><p><strong>Dosage:</strong> "+dosage+"</p><p><strong>Registration Number:</strong> "+registrationNo+"</p>";
+      }
+      $("#checkResult").append(drugTemplate);
+    });
+  }
+
+};
+
+$(function() {
+  $(window).load(function() {
+    App.init();
+
+    $("#views").click(() => {
+      $("#add_form").toggle();
+      $("#check_form").toggle();
+    })
+  });
+});
