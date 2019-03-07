@@ -1,4 +1,4 @@
-const now = new Date();
+var now = moment().format().toString();
 //const currentTimestamp = dateformat(now, "isoDateTime");
 
 
@@ -67,9 +67,15 @@ App = {
         if( result[3] == 0 ){
           //adding object if no existing batch number matches
           App.contracts.DrugValidation.deployed().then((instance) => {
-            instance.addDrug(drugName, drugDosage, drugRegistration);
-            var addAlert = '<div class="alert alert-success" role="alert">Successfully Queued...Confirm fee to complete transaction</div>'
-            $("#add_alert").append(addAlert);
+            return instance.addDrug(drugName, drugDosage, drugRegistration);
+          }).then((answer)=>{
+            if(answer.receipt.status == true){
+              var addAlert = '<div class="alert alert-success" role="alert">Successfully Added</div>'
+              $("#add_alert").html(addAlert);
+            }else {
+              var addAlert = '<div class="alert alert-danger" role="alert">Failed...</div>'
+              $("#add_alert").html(addAlert);
+            }
           });
         } else {
           var addAlert = '<div class="alert alert-warning" role="alert">Drug with current batch number already added</div>'
@@ -84,6 +90,8 @@ App = {
 
   checkDrug: function(){
     $("#checkResult").empty();
+    $("#check_form form a").hide();
+
     var checkRegistration = $("#check_drug_registration").val();
     App.contracts.DrugValidation.deployed().then(function(instance){
       return instance.checkDrug(checkRegistration);
@@ -105,19 +113,51 @@ App = {
       } else {
         var drugTemplate = "<p><strong>Name:</strong> "+name+"</p><p><strong>Dosage:</strong> "+dosage+"</p><p><strong>Registration Number:</strong> "+registrationNo+"</p><p><strong>Collected Status:</strong> "+recieved+"</p>";
         if (collected != true) {
-          $("#check_form form a").show();
+          App.contracts.DrugValidation.deployed().then((instance)=>{
+            return instance.confirmRetailer();
+          }).then((result)=>{
+            if (result == true){
+              $("#check_form form a").show();
+            }
+          });
         } else {
           $("#check_form form a").hide();
         }
       }
-      $("#checkResult").append(drugTemplate);
+      $("#checkResult").html(drugTemplate);
     });
   },
 
   collectDrug: function(_checkRegistration){
-    App.contracts.DrugValidation.deployed().then(function(instance){
-      return instance.collectDrug(_checkRegistration, "Today");
+    $("#collectResult").empty();
+    App.contracts.DrugValidation.deployed().then((instance)=>{
+      return instance.confirmRetailer();
+    }).then((result)=>{
+      if( result == true ){
+        App.contracts.DrugValidation.deployed().then(function(instance){
+          return instance.collectDrug(_checkRegistration, now);
+        }).then((answer)=>{
+          if(answer.receipt.status == true){
+            var collectMsg = '<div class="alert alert-success" role="alert">Done</div>';!
+            $("#collectResult").html(collectMsg);
+            $("#checkResult").empty();
+          }
+        });
+      }else {
+        var collectMsg = '<div class="alert alert-danger" role="alert">You\'re not an authorized retailer</div>';
+        $("#collectResult").html(collectMsg);
+      }
     });
+  },
+
+  addRetailer: function(){
+    //missing code to collect retailers address saved in var _address
+    var _address = $("#retailer_address").val();
+    //missing code to collect retailers name saved in var _name
+    var _name = $("#retailer_name").val();
+    App.contracts.DrugValidation.deployed().then((instance)=>{
+      return instance.addRetailer(_name, _address);
+    })
   }
 
 };

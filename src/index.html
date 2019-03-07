@@ -59,6 +59,20 @@
                 <br>
                 <button type="submit" class="btn btn-lg btn-primary">Add</button>
               </form>
+
+              <form onSubmit="App.addRetailer(); return false;">
+                <h3 class="text-center">Add Retailer</h3>
+                <hr/>
+                <!--<label for="retailer_name">Name:</label>-->
+                <input type="text" name="" id="retailer_name" placeholder="Name" required>
+                <br>
+                <br>
+                <!--<label for="retailer_address">Registration Number:</label>-->
+                <input type="text" name="" id="retailer_address" placeholder="Address" required>
+                <br>
+                <br>
+                <button type="submit" class="btn btn-lg btn-primary">Add</button>
+              </form>
             </div>
             <div class="" id="check_form">
               <form onSubmit="App.checkDrug(); return false;">
@@ -74,6 +88,9 @@
                 <br>
                 <button type="submit" class="btn btn-primary">Check</button>
                 <a href="#" style="display: none;">Collect</a>
+                <br>
+                <div id="collectResult">
+                </div>
               </form>
 
             </div>
@@ -93,6 +110,7 @@
     <script src="js/bootstrap.min.js"></script>
     <script src="js/web3.min.js"></script>
     <script src="js/truffle-contract.js"></script>
+    <script src="js/moment.min.js"></script>
     <script src="js/app.js"></script>
   </body>
 </html>

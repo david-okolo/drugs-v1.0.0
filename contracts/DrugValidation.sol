@@ -28,7 +28,7 @@ contract DrugValidation {
   }
 
   // Associative arrays
-  mapping (uint => Retailer) public retailers;
+  Retailer[] public retailers;
   Drug[] public drugs;
   mapping (uint => CollectionData) public collectionLog;
 
@@ -49,6 +49,7 @@ contract DrugValidation {
     for (uint i = 0; i < drugCount; i++) {
       if( drugs[i].batchNumber == _batchNumber ){
         checker = true;
+        break;
       }
     }
 
@@ -59,8 +60,29 @@ contract DrugValidation {
   }
 
   function addRetailer(string memory _name, address _address) public {
-    retailerCount++;
-    retailers[retailerCount] = Retailer(_name, _address);
+    checker = false;
+    for (uint i = 0; i < retailerCount; i++) {
+      if( retailers[i].retailerAddress == _address ){
+        checker = true;
+        break;
+      }
+    }
+
+    if (msg.sender == manufacturer && checker == false) {
+      retailerCount++;
+      retailers.push(Retailer(_name, _address));
+    }
+  }
+
+  function confirmRetailer() public view returns (bool) {
+    for(uint i = 0; i < retailerCount; i++){
+      if (retailers[i].retailerAddress == msg.sender) {
+        return true;
+        break;
+      }else {
+        return false;
+      }
+    }
   }
 
   function logCollection(uint _batchNumber, string memory _timestamp) private {
@@ -73,6 +95,8 @@ contract DrugValidation {
       if( drugs[i].batchNumber == _batchNumber ){
         drugs[i].recieved = true;
         logCollection(_batchNumber, _timestamp);
+        return true;
+        break;
       }
     }
   }
@@ -82,6 +106,7 @@ contract DrugValidation {
     for (uint i = 0; i < drugCount; i++) {
       if( drugs[i].batchNumber == _batchNumber ){
         return(drugs[i].id, drugs[i].name, drugs[i].dosage, drugs[i].batchNumber, drugs[i].manufacturerAddress, drugs[i].recieved);
+        break;
       }
     }
   }
