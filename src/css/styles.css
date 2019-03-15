@@ -1,0 +1,259 @@
+body {
+    font-family: Lato;
+}
+body, .container {
+    margin: 0;
+    padding: 0;
+}
+
+.sidenav {
+    width: 320px;
+    height: 100%;
+    background-color: rgb(31, 66, 102);
+    position: absolute;
+}
+
+.logo {
+    font-size: 24px;
+    color: white;
+    font-weight: bold;
+    padding-left: 50px;
+    margin-top: 50px;
+    margin-bottom: 72px;
+}
+
+.sidenav-links-top {
+    margin-bottom: 50px;
+}
+
+.sidenav-links-bottom {
+    position: absolute;
+    bottom: 50px;
+}
+
+.sidenav-link {
+    display: inline-block;
+    font-size: 16px;
+    color: rgb(242, 249, 255);
+    margin-left: 10px;
+    line-height: 30px;
+}
+
+.sidenav-link-container {
+    height: 30px;
+    border-left: 5px solid rgb(31, 66, 102);
+    padding-left: 45px;
+    line-height: 30px;
+    margin-bottom: 20px;
+    position: relative;
+    cursor: pointer;
+}
+
+.sidenav-link-container:hover {
+    border-left: 5px solid  rgb(120, 180, 230);
+}
+
+
+.main {
+    float: left;
+    height: 100vh;
+    width: 100%;
+    background-color: rgb(252, 252, 252);
+
+}
+
+.form-div {
+    position: absolute;
+    left: 478px;
+    top: 60px;
+}
+
+.form-header {
+    display: block;
+    font-size: 30px;
+    font-weight: 900;
+    margin-bottom: 56px;
+}
+
+.form-input {
+    height: 56px;
+    position: relative;
+    margin-bottom: 15px;
+}
+
+.ccs-input {
+    height: 56px;
+    position: relative;
+}
+
+.form-input label {
+    font-size: 12px;
+    position: absolute;
+    top:0;
+    font-weight: 600;
+    color: rgb(163, 181, 204);
+}
+
+.form-input input {
+    font-family: Lato;
+    font-size: 14px;
+    font-weight: 600;
+    position: absolute;
+    padding-left: 22px;
+    top:20px;
+    width: 348px;
+    height: 36px;
+    border-radius: 5px;
+    border: 1px solid rgb(207, 218, 230);
+}
+
+.ccs-input label {
+    font-size: 12px;
+    position: absolute;
+    top:0;
+    font-weight: 600;
+    color: rgb(163, 181, 204);
+}
+
+.ccs-input input {
+    font-family: Lato;
+    font-size: 14px;
+    font-weight: 600;
+    position: absolute;
+    padding-left: 22px;
+    top:20px;
+    width: 348px;
+    height: 36px;
+    border-radius: 5px;
+    border: 1px solid rgb(207, 218, 230);
+}
+
+.form-input select {
+    font-size: 14px;
+    font-weight: 600;
+    padding-left: 22px;
+    position: absolute;
+    top:20px;
+    width: 372px;
+    height: 40px;
+    border-radius: 5px;
+    border: 1px solid rgb(207, 218, 230);
+}
+
+.form-button {
+    width: 372px;
+    height: 40px;
+    border: none;
+    border-radius: 5px;
+    background-color: rgb(31, 66, 102);
+    color: rgb(242, 249, 255);
+    font-family: Lato;
+    font-size: 16px;
+    font-weight: bold;
+    margin-top: 30px;
+    cursor: pointer;
+}
+
+.input-button {
+    position: absolute;
+    bottom: -4px;
+    left: 324px;
+    width: 53px;
+    height: 40px;
+    border: none;
+    border-radius: 0 5px 5px 0;
+    background-color: rgb(31, 66, 102);
+    color: rgb(242, 249, 255);
+    font-family: Lato;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.input-button img {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 16px;
+    margin: 0 auto;
+}
+
+.alert {
+    margin-top: 30px;
+    height: 40px;
+    width: 100%;
+    padding-right: 10px;
+}
+
+.alert-success {
+    background-color: rgb(101, 204, 176);
+}
+
+.alert-danger {
+    background-color: rgb(236, 77, 77);
+}
+
+.alert-warning {
+    background-color: rgb(255, 219, 152);
+}
+
+.alert img {
+    float: left;
+    margin-top: 13px;
+}
+.alert p {
+    color: rgb(252, 252, 252);
+    line-height: 40px;
+    margin-left: 20px;
+    font-size: 14px;
+    float: left;
+    
+}
+
+.search-results {
+    margin-top: 56px;
+    width: 100%;
+}
+
+.results-header {
+    display: block;
+    font-size: 24px;
+    font-weight: 900;
+    margin-bottom: 16px;
+    color: rgb(207, 218, 230);
+}
+
+.search-results p {
+    position: relative;
+}
+
+.p_img {
+    position: absolute;
+    margin-left: 5px;
+    bottom: 0;
+}
+
+.c_img {
+    margin-top: 10px;
+    margin-left: 150px;
+}
+
+.back_text {
+    position: absolute;
+    right: 50px;
+    bottom: 50px;
+}
+
+.wallet_tag {
+    color: rgb(242, 249, 255);
+    margin-left: 10px;
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.wallet_address {
+    color: rgb(242, 249, 255);
+    margin-left: 10px;
+    font-size: 13px;
+}

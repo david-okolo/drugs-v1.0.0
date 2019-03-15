@@ -4,112 +4,254 @@ pragma solidity ^0.5.0;
 
 contract DrugValidation {
 
-  address public manufacturer;
-
   //Model the drug struct
   struct Drug {
     uint id;
     string name;
     string dosage;
     uint batchNumber;
+    uint drugNumber;
+    address manufacturerAddress;
+  }
+
+  struct Batch {
+    uint batchNumber;
+    string name;
+    string dosage;
     address manufacturerAddress;
     bool recieved;
   }
 
-  struct CollectionData {
+  struct Collection {
     address collectionAddress;
     uint batchNumber;
     string timestamp;
+    address manufacturerAddress;
   }
 
-  struct Retailer {
+  struct User {
     string name;
-    address retailerAddress;
+    address userAddress;
+    uint accountPriviledge;
   }
 
   // Associative arrays
-  Retailer[] public retailers;
+  User[] public users;
   Drug[] public drugs;
-  mapping (uint => CollectionData) public collectionLog;
+  Batch[] public batches;
+  Collection[] public collectionLog;
 
   //cache counters
-  uint public retailerCount;
+  uint public userCount;
   uint public drugCount;
-  uint public collectionLogCount;
-
-  bool private checker;
+  uint public logCount;
+  uint public batchCount;
 
   constructor() public {
-    manufacturer = msg.sender;
+    userCount++;
+    users.push(User("Owner", msg.sender, 3));
+  }
+
+  function whichUser() view public returns (uint) {
+    uint level;
+    level = 0;
+
+    for (uint i = 0; i < userCount; i++) {
+      if( users[i].userAddress == msg.sender ){
+       // return users[i].accountPriviledge;
+        level = users[i].accountPriviledge;
+
+        break;
+      } 
+    }
+    
+    return level;
+
   }
 
   //To add the drug data. Expects 3 arguments
   function addDrug(string memory _name, string memory _dosage, uint _batchNumber) public {
-    checker = false;
-    for (uint i = 0; i < drugCount; i++) {
-      if( drugs[i].batchNumber == _batchNumber ){
-        checker = true;
+    bool isDrug;
+    uint level;
+    uint drugNumber;
+    isDrug = false;
+
+    for (uint i = 0; i < batchCount; i++) {
+      if( batches[i].batchNumber == _batchNumber ){
+        isDrug = true;
         break;
       }
     }
 
-    if (msg.sender == manufacturer && checker == false) {
+    drugNumber = (_batchNumber * 100) + 1;
+
+    level = whichUser();
+
+    if (level >= 2 && isDrug == false) {
+      batchCount++;
+      batches.push(Batch(_batchNumber, _name, _dosage, msg.sender, false));
       drugCount++; //To increment the drug count by 1 everytime this function is called
-      drugs.push(Drug(drugCount, _name, _dosage, _batchNumber, msg.sender, false)); //adding the drug data to the array
+      drugs.push(Drug(drugCount, _name, _dosage, _batchNumber, drugNumber, msg.sender)); //adding the drug data to the array
     }
   }
 
-  function addRetailer(string memory _name, address _address) public {
-    checker = false;
-    for (uint i = 0; i < retailerCount; i++) {
-      if( retailers[i].retailerAddress == _address ){
-        checker = true;
+  function addDrugBatch(string memory _name, string memory _dosage, uint _batchNumber, uint _amount) public {
+    bool isDrug;
+    uint drugNumber;
+    uint level;
+    uint amount;
+
+    amount = _amount + 1;
+    isDrug = false;
+    for (uint i = 0; i < batchCount; i++) {
+      if( batches[i].batchNumber == _batchNumber ){
+        isDrug = true;
         break;
       }
     }
 
-    if (msg.sender == manufacturer && checker == false) {
-      retailerCount++;
-      retailers.push(Retailer(_name, _address));
+    level = whichUser();
+
+    if (level >= 2 && !isDrug) {
+      batchCount++;
+      batches.push(Batch(_batchNumber, _name, _dosage, msg.sender, false));
+
+      for(uint i = 1; i < amount; i++) {
+        drugNumber = (_batchNumber * 100) + i;
+        drugCount++; //To increment the drug count by 1 everytime this function is called
+        drugs.push(Drug(drugCount, _name, _dosage, _batchNumber, drugNumber, msg.sender)); //adding the drug data to the array
+      }
+
     }
+  }
+
+  function addUser(string memory _name, address _address, uint _level) public {
+    bool isManufacturer;
+    bool isUser;
+    isManufacturer = false;
+    isUser = false;
+
+    for (uint i = 0; i < userCount; i++) {
+
+      if( users[i].userAddress == msg.sender && users[i].accountPriviledge >= 2 ){
+
+        isManufacturer = true;
+
+        for (uint j = 0; j < userCount; j++) {
+
+          if( users[j].userAddress == _address) {
+            isUser = true;
+            break;
+          }
+
+        }
+
+        break;
+
+      }
+    }
+
+    if ( isManufacturer && !isUser ) {
+      userCount++;
+      users.push(User(_name, _address, _level));
+    }
+
   }
 
   function confirmRetailer() public view returns (bool) {
-    for(uint i = 0; i < retailerCount; i++){
-      if (retailers[i].retailerAddress == msg.sender) {
-        return true;
-        break;
-      }else {
-        return false;
-      }
+    uint level;
+
+    level = whichUser();
+
+    if ( level == 1 ) {
+      return true;
+    } else {
+      return false;
     }
   }
 
-  function logCollection(uint _batchNumber, string memory _timestamp) private {
-    collectionLogCount++;
-    collectionLog[collectionLogCount] = CollectionData(msg.sender, _batchNumber, _timestamp);
+  function logCollection(uint _batchNumber, string memory _timestamp, address _manufacturerAddress ) private {
+    logCount++;
+    collectionLog.push(Collection(msg.sender, _batchNumber, _timestamp, _manufacturerAddress));
   }
 
   function collectDrug(uint _batchNumber, string memory _timestamp ) public returns (bool) {
+
     for (uint i = 0; i < drugCount; i++) {
-      if( drugs[i].batchNumber == _batchNumber ){
-        drugs[i].recieved = true;
-        logCollection(_batchNumber, _timestamp);
+      if( batches[i].batchNumber == _batchNumber ){
+        batches[i].recieved = true;
+        logCollection(_batchNumber, _timestamp, batches[i].manufacturerAddress);
+        return true;
+        break;
+      }
+    }
+
+  }
+
+
+
+  function collectDrugBatch(uint _batchNumber, string memory _timestamp ) public returns (bool) {
+    for (uint i = 0; i < batchCount; i++) {
+      if( batches[i].batchNumber == _batchNumber ){
+        batches[i].recieved = true;
+        logCollection(_batchNumber, _timestamp, batches[i].manufacturerAddress);
         return true;
         break;
       }
     }
   }
 
-  function checkDrug(uint _batchNumber) public view returns(uint, string memory, string memory, uint, address, bool) {
 
-    for (uint i = 0; i < drugCount; i++) {
-      if( drugs[i].batchNumber == _batchNumber ){
-        return(drugs[i].id, drugs[i].name, drugs[i].dosage, drugs[i].batchNumber, drugs[i].manufacturerAddress, drugs[i].recieved);
+  function callLog(uint _batchNumber) public view returns (address, string memory, string memory) {
+    for (uint i = 0; i < logCount; i++){
+      if(collectionLog[i].batchNumber == _batchNumber && collectionLog[i].manufacturerAddress == msg.sender) {
+        for (uint j = 0; j < userCount; j++) {
+          if (users[j].userAddress == collectionLog[i].collectionAddress){
+            return (collectionLog[i].collectionAddress, collectionLog[i].timestamp, users[j].name);
+            break;
+          }
+        }
         break;
       }
     }
   }
+
+  function checkDrug(uint _drugNumber) public view returns(uint, string memory, string memory, uint, uint, address, bool) {
+    uint _batchNumber;
+    bool _recieved;
+    _recieved = false;
+
+    for (uint i = 0; i < drugCount; i++) {
+      if( drugs[i].drugNumber == _drugNumber ){
+
+        _batchNumber = drugs[i].batchNumber;
+        for (uint j = 0; j < batchCount; j++){
+          if (batches[j].batchNumber == _batchNumber) {
+            if (batches[j].recieved){
+              _recieved = true;
+            }
+
+            break;
+          }
+        }
+
+        return(drugs[i].id, drugs[i].name, drugs[i].dosage, drugs[i].batchNumber, drugs[i].drugNumber, drugs[i].manufacturerAddress, _recieved);
+        break;
+      }
+    }
+  }
+
+  function checkDrugByBatch(uint _batchNumber) public view returns(uint, string memory, string memory, address, bool) {
+
+        for (uint i = 0; i < batchCount; i++){
+          if (batches[i].batchNumber == _batchNumber) {
+            return(batches[i].batchNumber, batches[i].name, batches[i].dosage,  batches[i].manufacturerAddress, batches[i].recieved);
+            break;
+          }
+        }
+
+
+      }
 
 //  function allDrugs() view public returns ()
 }
