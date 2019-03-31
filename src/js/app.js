@@ -1,6 +1,9 @@
 var now = moment().format().toString();
 //const currentTimestamp = dateformat(now, "isoDateTime");
 
+
+//HTML templates
+
 var sidenavTop = $("#sidenav-top");
 var sidenavMiddle = $("#sidenav-middle");
 var main = $("#main");
@@ -11,8 +14,11 @@ var nav_anu = '<div class="container sidenav-link-container" id="anu"><img src="
 var nav_ccs = '<div class="container sidenav-link-container" id="ccs"><img src="./images/search_1.svg" alt=""><span class="sidenav-link">check collection status</span></div>';
 var nav_vdn = '<div class="container sidenav-link-container" id="vdn"><img src="./images/search_1.svg" alt=""><span class="sidenav-link">verify drug number</span></div>';
 var nav_cld = '<div class="container sidenav-link-container" id="cld"><img src="./images/accept_1.svg" alt=""><span class="sidenav-link">collect drug</span></div>';
+var nav_anr = '<div class="container sidenav-link-container" id="anr"><img src="./images/profile_close_add.svg" alt=""><span class="sidenav-link">add new retailer</span></div>';
 
 var addUserForm = '<div class="container form-div"><span class="form-header">add new user</span><form onSubmit="App.addUser(); return false;"><div class="form-input"><label for="user_name">Name</label><input type="text" name="user_name" id="user_name" required></div><div class="form-input"><label for="user_address">User Address</label><input type="text" name="user_address" id="user_address" required></div><div class="form-input"><label for="user_accessLevel">Account Type</label><select name="user_accessLevel" id="user_accessLevel" required><option value="1">Retailer</option><option value="2">Manufacturer</option></select></div><button type="submit"  class="container form-button">add</button><div class="container" id="add_alert"></div></form></div>';
+
+var addUserFormLevel2 = '<div class="container form-div"><span class="form-header">add new retailer</span><form onSubmit="App.addUser(); return false;"><div class="form-input"><label for="user_name">Name</label><input type="text" name="user_name" id="user_name" required></div><div class="form-input"><label for="user_address">User Address</label><input type="text" name="user_address" id="user_address" required></div><button type="submit"  class="container form-button">add</button><div class="container" id="add_alert"></div></form></div>';
 
 var addDrugForm = '<div class="container form-div"><span class="form-header">add new batch</span><form onSubmit="App.addDrugs(); return false;"><div class="form-input"><label for="drug_name">Name</label><input type="text" name="drug_name" id="drug_name" required></div><div class="form-input"><label for="drug_batch">Batch Number</label><input type="text" name="drug_batch" id="drug_batch" required></div><div class="form-input"><label for="drug_dosage">Dosage</label><select name="drug_dosage" id="drug_dosage" required><option value="1">250mg</option><option value="2">500mg</option><option value="3">1000mg</option></select></div><div class="form-input"><label for="drug_amount">Amount</label><select name="drug_amount" id="drug_amount" required><option value="10">10</option><option value="20">20</option></select></div><button type="submit"  class="container form-button">add</button><div class="container" id="add_alert"></div></form><div>';
 
@@ -21,6 +27,8 @@ var ccsForm = '<div class="container form-div"><span class="form-header">check c
 var vdnForm = '<div class="container form-div"><span class="form-header">drug verification</span><form onSubmit="App.checkDrug(); return false;"><div class="ccs-input"><label for="user_name">Drug Number</label><input type="text" name="log_batch" id="check_drug_registration" required><button type="submit"  class="container input-button"><img src="./images/arrow_simple_1.svg" alt=""></button></div><div class="container" id="add_alert"></div></form><div class="container search-results" id="search-results"></div></div>';
 
 var cdForm = '<div class="container form-div"><span class="form-header">collect batch</span><form onSubmit="App.collectDrug(); return false;"><div class="ccs-input"><label for="user_name">Batch Number</label><input type="text" name="log_batch" id="batchNumber" required><button type="submit"  class="container input-button"><img src="./images/arrow_simple_1.svg" alt=""></button></div><div class="container" id="add_alert"></div></form><div class="container search-results" id="search-results"></div></div>';
+
+
 
 App = {
   web3Provider: null,
@@ -52,23 +60,19 @@ App = {
 
   // Controls the view
   render: function(){
-    // HTML template for components
-    var switchBtn = '<button type="button" class="btn btn-primary" id="views" name="button">Switch Views</button>';
-    var logForm = '<div class="" id="log_form">    <form onSubmit="App.checkLog(); return false;">      <h3 class="text-center">Collect By Batch Number</h3>      <hr/>      <!--<label for="check_drug_registration">Registration Number:</label>-->      <input type="text" name="" id="log_batch" placeholder="Batch Number" required>      <br>      <br>      <h4 style="font-weight: 900; ">Search Result</h4>      <div id="logResult">      </div>      <br>      <button type="submit" class="btn btn-primary">Check</button>      <br></form></div>'
-    var collectForm = '<div class="" id="check_form">    <form onSubmit="App.collectDrug(); return false;">      <h3 class="text-center">Collect By Batch Number</h3>      <hr/>      <!--<label for="check_drug_registration">Registration Number:</label>-->      <input type="text" name="" id="batchNumber" placeholder="Batch Number" required>      <br>      <br>      <h4 style="font-weight: 900; ">Search Result</h4>      <div id="checkResult">      </div>      <br>      <button type="submit" class="btn btn-primary">Collect</button>      <br>      <div id="collectResult">      </div></form></div>'
-    var addForm = '<div class=""  id="add_form" style="display: none;"><div id="add_alert"></div><form onSubmit="App.addDrugs(); return false;"><h3 class="text-center">Add New Drugs</h3><hr/><!--<label for="drug_name">Name:</label>--><input type="text" name="" id="drug_name" placeholder="Name" required><br><br><!--<label for="drug_dosage">Dosage:</label>--><input type="text" name="" id="drug_dosage" placeholder="Dosage"><br><br><!--<label for="drug_registration">Registration Number:</label>--><input type="text" name="" id="drug_registration" placeholder="Batch Number" required><br><br><input type="text" name="" id="drug_amount" placeholder="Amount between 1-20" required><br><br><button type="submit" class="btn btn-lg btn-primary">Add</button></form><form onSubmit="App.addUser(); return false;"><h3 class="text-center">Create New User</h3><hr/><!--<label for="retailer_name">Name:</label>--><input type="text" name="" id="user_name" placeholder="Name" required><br><br><!--<label for="retailer_address">Registration Number:</label>--><input type="text" name="" id="user_address" placeholder="Address" required><select name="user_accessLevel" id="user_accessLevel"><option value="1">Retailer</option><option value="2">Manufacturer</option> </select><br><br><button type="submit" class="btn btn-lg btn-primary">Add</button></form></div>'
-    var checkForm = '<div class="" id="check_form">    <form onSubmit="App.checkDrug(); return false;">      <h3 class="text-center">Check By Registration Number</h3>      <hr/>      <!--<label for="check_drug_registration">Registration Number:</label>-->      <input type="text" name="" id="check_drug_registration" placeholder="Registration Number" required>      <br>      <br>      <h4 style="font-weight: 900; ">Search Result</h4>      <div id="checkResult">      </div>      <br>      <button type="submit" class="btn btn-primary">Check</button>      <a href="#" style="display: none;">Collect</a>      <br>      <div id="collectResult">      </div></form></div>'
-
     // To select user by sending msg.sender metadata to the whichUser function
     App.contracts.DrugValidation.deployed().then((instance)=>{
       return instance.whichUser(); // returns account priviledge level
     }).then((result)=>{
-      //alert(result);
 
       //renders view based on priviledge level
       if(result == 1){
         sidenavTop.append(nav_cld);
-      } else if (result >= 2){
+      } else if (result == 2){
+        sidenavTop.append(nav_anb);
+        sidenavTop.append(nav_anr);
+        sidenavMiddle.append(nav_ccs);
+      }else if (result == 3){
         sidenavTop.append(nav_anb);
         sidenavTop.append(nav_anu);
         sidenavMiddle.append(nav_ccs);
@@ -193,7 +197,7 @@ App = {
         App.contracts.DrugValidation.deployed().then(function(instance){
           return instance.checkDrugByBatch(_batch);
         }).then((answer)=>{
-         
+
           var name = answer[1];
           var dosage = answer[2];
           var batchNumber = answer[0];
@@ -233,6 +237,10 @@ App = {
     var _name = $("#user_name").val();
 
     var _accessLevel = $("#user_accessLevel").val();
+
+    if (_accessLevel == undefined) {
+      _accessLevel = 1;
+    }
 
     App.contracts.DrugValidation.deployed().then((instance)=>{
       return instance.addUser(_name, _address, _accessLevel);
@@ -282,6 +290,7 @@ $(function() {
       $("#main").html(addDrugForm);
       $("#anu").css('border-color','#1f4266');
       $("#ccs").css('border-color','#1f4266');
+      $("#anr").css('border-color','#1f4266');
       $("#anb").css('border-color','#fff');
     });
 
@@ -293,11 +302,20 @@ $(function() {
       $("#anu").css('border-color','#fff');
     });
 
+    $(document).on('click', '#anr', () => {
+      $("#main").empty();
+      $("#main").html(addUserFormLevel2);
+      $("#anb").css('border-color','#1f4266');
+      $("#ccs").css('border-color','#1f4266');
+      $("#anr").css('border-color','#fff');
+    });
+
     $(document).on('click', '#ccs', () => {
       $("#main").empty();
       $("#main").html(ccsForm);
       $("#anb").css('border-color','#1f4266');
       $("#anu").css('border-color','#1f4266');
+      $("#anr").css('border-color','#1f4266');
       $("#ccs").css('border-color','#fff');
     });
 

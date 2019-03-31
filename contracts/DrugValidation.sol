@@ -33,6 +33,7 @@ contract DrugValidation {
     string name;
     address userAddress;
     uint accountPriviledge;
+    address addedBy;
   }
 
   // Associative arrays
@@ -49,7 +50,7 @@ contract DrugValidation {
 
   constructor() public {
     userCount++;
-    users.push(User("Owner", msg.sender, 3));
+    users.push(User("Owner", msg.sender, 3, msg.sender));
   }
 
   function whichUser() view public returns (uint) {
@@ -62,9 +63,9 @@ contract DrugValidation {
         level = users[i].accountPriviledge;
 
         break;
-      } 
+      }
     }
-    
+
     return level;
 
   }
@@ -126,34 +127,23 @@ contract DrugValidation {
   }
 
   function addUser(string memory _name, address _address, uint _level) public {
-    bool isManufacturer;
+    uint isManufacturer;
     bool isUser;
-    isManufacturer = false;
+    isManufacturer = 0;
     isUser = false;
 
+    isManufacturer = whichUser();
+
     for (uint i = 0; i < userCount; i++) {
-
-      if( users[i].userAddress == msg.sender && users[i].accountPriviledge >= 2 ){
-
-        isManufacturer = true;
-
-        for (uint j = 0; j < userCount; j++) {
-
-          if( users[j].userAddress == _address) {
-            isUser = true;
-            break;
-          }
-
-        }
-
+      if( users[i].userAddress == _address) {
+        isUser = true;
         break;
-
       }
     }
 
-    if ( isManufacturer && !isUser ) {
+    if ( isManufacturer >= 2  && !isUser ) {
       userCount++;
-      users.push(User(_name, _address, _level));
+      users.push(User(_name, _address, _level, msg.sender));
     }
 
   }
@@ -175,13 +165,11 @@ contract DrugValidation {
     collectionLog.push(Collection(msg.sender, _batchNumber, _timestamp, _manufacturerAddress));
   }
 
-  function collectDrug(uint _batchNumber, string memory _timestamp ) public returns (bool) {
-
+  function collectDrug(uint _batchNumber, string memory _timestamp ) public {
     for (uint i = 0; i < drugCount; i++) {
       if( batches[i].batchNumber == _batchNumber ){
         batches[i].recieved = true;
         logCollection(_batchNumber, _timestamp, batches[i].manufacturerAddress);
-        return true;
         break;
       }
     }
@@ -190,12 +178,16 @@ contract DrugValidation {
 
 
 
-  function collectDrugBatch(uint _batchNumber, string memory _timestamp ) public returns (bool) {
+  function collectDrugBatch(uint _batchNumber, string memory _timestamp ) public {
+    uint isRetailer;
+
+    isRetailer = 0;
+    isRetailer = whichUser();
+
     for (uint i = 0; i < batchCount; i++) {
-      if( batches[i].batchNumber == _batchNumber ){
+      if( isRetailer == 1 && batches[i].batchNumber == _batchNumber ){
         batches[i].recieved = true;
         logCollection(_batchNumber, _timestamp, batches[i].manufacturerAddress);
-        return true;
         break;
       }
     }
@@ -243,9 +235,19 @@ contract DrugValidation {
 
   function checkDrugByBatch(uint _batchNumber) public view returns(uint, string memory, string memory, address, bool) {
 
+    address addedBy;
+    addedBy = 0x0000000000000000000000000000000000000000;
+
+    for (uint i = 0; i < userCount; i++) {
+      if( users[i].userAddress == msg.sender ){
+        addedBy = users[i].addedBy;
+        break;
+      }
+    }    
+
         for (uint i = 0; i < batchCount; i++){
-          if (batches[i].batchNumber == _batchNumber) {
-            return(batches[i].batchNumber, batches[i].name, batches[i].dosage,  batches[i].manufacturerAddress, batches[i].recieved);
+          if (batches[i].batchNumber == _batchNumber && batches[i].manufacturerAddress == addedBy) {
+            return(batches[i].batchNumber, batches[i].name, batches[i].dosage, batches[i].manufacturerAddress, batches[i].recieved);
             break;
           }
         }
